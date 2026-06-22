@@ -1,0 +1,302 @@
+{% extends 'admin/layout.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="fw-bold mb-1">
+            Add New Client
+        </h2>
+
+        <p class="text-muted mb-0">
+            Enter PAN Number to automatically fetch client details from ClientList database.
+        </p>
+    </div>
+
+    <a href="/dashboard" class="btn btn-outline-dark">
+        <i class="bi bi-arrow-left"></i>
+        Dashboard
+    </a>
+
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for category,message in messages %}
+
+<div class="alert alert-{{ category }} alert-dismissible fade show">
+
+    {{ message }}
+
+    <button class="btn-close"
+            data-bs-dismiss="alert">
+    </button>
+
+</div>
+
+{% endfor %}
+{% endwith %}
+
+<div class="card border-0 shadow-sm">
+
+    <div class="card-header bg-primary text-white">
+
+        <h5 class="mb-0">
+            <i class="bi bi-person-vcard-fill me-2"></i>
+            Client Information
+        </h5>
+
+    </div>
+
+    <div class="card-body p-4">
+
+        <form method="POST">
+
+            <div class="row">
+
+                <div class="col-lg-4 mb-3">
+
+                    <label class="form-label fw-semibold">
+                        PAN Number
+                    </label>
+
+                    <input
+                        type="text"
+                        id="pan_no"
+                        name="pan_no"
+                        class="form-control text-uppercase"
+                        maxlength="10"
+                        autocomplete="off"
+                        autofocus
+                        required>
+
+                    <small class="text-muted">
+                        Type PAN number to auto fetch details
+                    </small>
+
+                </div>
+
+                <div class="col-lg-4 mb-3">
+
+                    <label class="form-label fw-semibold">
+                        File Number
+                    </label>
+
+                    <input
+                        type="text"
+                        id="file_no"
+                        name="file_no"
+                        class="form-control">
+
+                </div>
+
+                <div class="col-lg-4 mb-3">
+
+                    <label class="form-label fw-semibold">
+                        Date Of File
+                    </label>
+
+                    <input
+                        type="date"
+                        name="date_of_file"
+                        class="form-control"
+                        required>
+
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-lg-6 mb-3">
+
+                    <label class="form-label fw-semibold">
+                        Client Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="client_name"
+                        name="client_name"
+                        class="form-control"
+                        required>
+
+                </div>
+
+                <div class="col-lg-6 mb-3">
+
+                    <label class="form-label fw-semibold">
+                        Mobile Number
+                    </label>
+
+                    <input
+                        type="text"
+                        id="mobile_no"
+                        name="mobile_no"
+                        class="form-control"
+                        required>
+
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-lg-6 mb-3">
+
+                    <label>E-Filing Password</label>
+
+                    <input
+                        type="text"
+                        id="efiling_password"
+                        name="efiling_password"
+                        class="form-control">
+                </div>
+
+                <div class="col-lg-6 mb-3">
+
+                    <label class="form-label fw-semibold">
+                        Status
+                    </label>
+
+                    <input
+                        type="text"
+                        value="Pending"
+                        class="form-control"
+                        readonly>
+
+                </div>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label fw-semibold">
+                    Remarks
+                </label>
+
+                <textarea
+                    name="remarks"
+                    rows="3"
+                    class="form-control"
+                    placeholder="Optional Remarks"></textarea>
+
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+
+                <button
+                    type="reset"
+                    class="btn btn-secondary">
+
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Clear
+
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-success">
+
+                    <i class="bi bi-check-circle-fill"></i>
+                    Save Client
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    const panInput = document.getElementById("pan_no");
+
+    function fetchClientData(pan){
+
+        fetch("/search-pan",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify({
+                pan_no: pan
+            })
+        })
+
+        .then(response => response.json())
+
+        .then(data => {
+
+            if(data.found){
+
+                document.getElementById("file_no").value =
+                data.file_no || "";
+
+                document.getElementById("client_name").value =
+                data.name || "";
+
+                document.getElementById("mobile_no").value =
+                data.mobile || "";
+
+                document.getElementById("efiling_password").value =
+                data.efiling_password || "";
+
+            }
+            else{
+
+                document.getElementById("file_no").value = "";
+                document.getElementById("client_name").value = "";
+                document.getElementById("mobile_no").value = "";
+                document.getElementById("efiling_password").value = "";
+
+            }
+
+        })
+
+        .catch(error => {
+            console.log(error);
+        });
+    }
+
+    // Manual Typing
+    panInput.addEventListener("input", function(){
+
+        let pan = this.value.trim().toUpperCase();
+
+        this.value = pan;
+
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+
+        if(panRegex.test(pan)){
+            fetchClientData(pan);
+        }
+
+    });
+
+    // Scanner Support (scanner usually sends Enter)
+    panInput.addEventListener("keypress", function(e){
+
+        if(e.key === "Enter"){
+
+            e.preventDefault();
+
+            let pan = this.value.trim().toUpperCase();
+
+            const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+
+            if(panRegex.test(pan)){
+                fetchClientData(pan);
+            }
+
+        }
+
+    });
+
+});
+</script>
+{% endblock %}

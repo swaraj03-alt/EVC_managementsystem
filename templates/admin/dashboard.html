@@ -1,0 +1,225 @@
+{% extends 'admin/layout.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="fw-bold">
+            Dashboard
+        </h2>
+        <p class="text-muted mb-0">
+            EVC Management Overview
+        </p>
+    </div>
+
+    <div>
+
+        <a href="/add-client"
+           class="btn btn-primary">
+
+            <i class="bi bi-person-plus"></i>
+            Add Client
+
+        </a>
+
+    </div>
+
+</div>
+
+<!-- CARDS -->
+
+<div class="row g-4">
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Total Clients
+                </h6>
+
+                <h2 class="fw-bold text-primary">
+                    {{ total_clients }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Pending EVC
+                </h6>
+
+                <h2 class="fw-bold text-warning">
+                    {{ pending_clients }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Verified EVC
+                </h6>
+
+                <h2 class="fw-bold text-success">
+                    {{ verified_clients }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- TABLE -->
+
+<div class="card shadow-sm border-0 mt-4">
+
+    <div class="card-header bg-white">
+
+        <div class="row align-items-center">
+
+            <div class="col-md-6">
+
+                <h5 class="mb-0">
+                    Pending EVC Records
+                </h5>
+
+            </div>
+
+            <div class="col-md-6 text-end">
+
+                <input type="text"
+                       id="searchInput"
+                       class="form-control"
+                       placeholder="Search PAN / Name">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover" id="clientTable">
+
+                <thead class="table-light">
+
+                <tr>
+                    <th>PAN</th>
+                    <th>Client Name</th>
+                    <th>Mobile</th>
+                    <th>Date Of File</th>
+                    <th>Status</th>
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for client in clients[:10] %}
+
+                <tr>
+
+                    <td>{{ client.pan_no }}</td>
+
+                    <td>{{ client.client_name }}</td>
+
+                    <td>{{ client.mobile_no }}</td>
+
+                    <td>{{ client.date_of_file }}</td>
+
+                    <td>
+
+                        {% if client.status == 'Pending' %}
+
+                        <span class="badge bg-warning">
+                            Pending
+                        </span>
+
+                        {% else %}
+
+                        <span class="badge bg-success">
+                            Verified
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+
+            <small class="text-muted">
+                Showing latest 10 records
+            </small>
+
+            <a href="/pending-clients"
+               class="btn btn-outline-primary">
+
+                View All Pending Records
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+document.getElementById("searchInput").addEventListener("keyup", function() {
+
+    let value = this.value.toLowerCase();
+
+    let rows = document.querySelectorAll("#clientTable tbody tr");
+
+    rows.forEach(row => {
+
+        row.style.display =
+            row.innerText.toLowerCase().includes(value)
+            ? ""
+            : "none";
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

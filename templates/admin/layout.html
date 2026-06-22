@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>EVC Management System</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+
+body{
+    background:#f4f6f9;
+    overflow-x:hidden;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:260px;
+    height:100vh;
+    position:fixed;
+    top:0;
+    left:0;
+    background:#0f172a;
+    transition:0.3s;
+    z-index:999;
+}
+
+.sidebar-header{
+    padding:20px;
+    border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+.sidebar-header h4{
+    color:#fff;
+    margin:0;
+    font-weight:700;
+}
+
+.sidebar-menu{
+    padding-top:15px;
+}
+
+.sidebar-menu a{
+    color:#cbd5e1;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 20px;
+    text-decoration:none;
+    transition:.3s;
+    font-size:15px;
+}
+
+.sidebar-menu a:hover{
+    background:#1e293b;
+    color:#fff;
+}
+
+.sidebar-menu a.active{
+    background:#2563eb;
+    color:white;
+    border-left:4px solid #fff;
+}
+
+.main{
+    margin-left:260px;
+    padding:25px;
+    transition:0.3s;
+}
+
+/* TOPBAR */
+
+.topbar{
+    display:none;
+    background:#0f172a;
+    color:white;
+    padding:15px;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.menu-btn{
+    border:none;
+    background:none;
+    color:white;
+    font-size:25px;
+}
+
+/* MOBILE */
+
+@media(max-width:991px){
+
+    .sidebar{
+        left:-260px;
+    }
+
+    .sidebar.show{
+        left:0;
+    }
+
+    .main{
+        margin-left:0;
+    }
+
+    .topbar{
+        display:flex;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- MOBILE TOPBAR -->
+
+<div class="topbar">
+
+    <button class="menu-btn" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <h5 class="mb-0">
+        EVC System
+    </h5>
+
+</div>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar" id="sidebar">
+
+    <div class="sidebar-header">
+
+        <h4>
+            <i class="bi bi-shield-check"></i>
+            EVC System
+        </h4>
+
+    </div>
+
+    <div class="sidebar-menu">
+
+        <a href="/dashboard"
+           class="{% if request.path == '/' or request.path == '/dashboard' %}active{% endif %}">
+
+            <i class="bi bi-speedometer2"></i>
+            Dashboard
+
+        </a>
+
+        <a href="/add-client"
+           class="{% if request.path == '/add-client' %}active{% endif %}">
+
+            <i class="bi bi-person-plus"></i>
+            Add Client
+
+        </a>
+
+        <a href="/pending-clients"
+           class="{% if request.path == '/pending-clients' %}active{% endif %}">
+
+            <i class="bi bi-hourglass-split"></i>
+            Pending Clients
+
+        </a>
+
+        <a href="/verified-clients"
+           class="{% if request.path == '/verified-clients' %}active{% endif %}">
+
+            <i class="bi bi-check-circle"></i>
+            Verified Clients
+
+        </a>
+
+    </div>
+
+</div>
+
+<!-- MAIN CONTENT -->
+
+<div class="main">
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+<script>
+
+function toggleSidebar(){
+
+    document
+    .getElementById("sidebar")
+    .classList
+    .toggle("show");
+
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
