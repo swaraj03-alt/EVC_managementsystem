@@ -126,46 +126,224 @@ def fetch_client():
 @app.route('/add-client', methods=['GET', 'POST'])
 def add_client():
 
-    if request.method == 'POST':
+    cursor = conn.cursor()
 
-        pan_no = request.form['pan_no']
-        client_name = request.form['client_name']
-        mobile_no = request.form['mobile_no']
-        date_of_file = request.form['date_of_file']
+    if request.method == "POST":
 
-        cursor = conn.cursor()
+        pan_no = request.form["pan_no"]
+        client_name = request.form["client_name"]
+        mobile_no = request.form["mobile_no"]
+        date_of_file = request.form["date_of_file"]
+        remarks = request.form.get("remarks", "")
+
+        # Get next available Verification Executive
+        cursor.execute("""
+
+        SELECT TOP 1
+            u.id,
+            u.fullname,
+            COUNT(c.id) AS pending_count
+
+        FROM users u
+
+        LEFT JOIN evc_clients c
+        ON u.id = c.assigned_to
+        AND c.status='Pending'
+
+        WHERE u.status='Active'
+
+        GROUP BY
+            u.id,
+            u.fullname
+
+        HAVING COUNT(c.id) < 20
+
+        ORDER BY
+        
+        u.id
+
+        """)
+
+        executive = cursor.fetchone()
+
+        if executive is None:
+
+            flash(
+                "No Verification Executive Available.",
+                "danger"
+            )
+
+            return redirect("/add-client")
+
+        assigned_user = executive.id
 
         cursor.execute("""
-            INSERT INTO evc_clients
-            (
-                pan_no,
-                client_name,
-                mobile_no,
-                date_of_file
-            )
-            VALUES
-            (
-                ?, ?, ?, ?
-            )
+
+        INSERT INTO evc_clients
+        (
+            pan_no,
+            client_name,
+            mobile_no,
+            date_of_file,
+            assigned_to,
+            assigned_date,
+            remarks
+        )
+
+        VALUES
+        (
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            GETDATE(),
+            ?
+        )
+
         """,
         (
             pan_no,
             client_name,
             mobile_no,
-            date_of_file
+            date_of_file,
+            assigned_user,
+            remarks
         ))
 
         flash(
-            'Client Added Successfully',
-            'success'
+
+            f"Client assigned to {executive.fullname} successfully.",
+
+            "success"
+
         )
 
-        return redirect('/add-client')
+        return redirect("/add-client")
+
+    ###########################################################
+    # Queue for Preview
+    ###########################################################
+
+    cursor.execute("""
+
+    SELECT
+
+        u.id,
+        u.fullname,
+        COUNT(c.id) AS pending_count
+
+    FROM users u
+
+    LEFT JOIN evc_clients c
+
+    ON u.id = c.assigned_to
+
+    AND c.status='Pending'
+
+    WHERE u.status='Active'
+
+    GROUP BY
+
+        u.id,
+        u.fullname
+
+    ORDER BY
+    
+    u.id
+
+    """)
+
+    users = cursor.fetchall()
 
     return render_template(
-        'admin/add_client.html'
+
+        "admin/add_client.html",
+
+        users=users
+
     )
 
+@app.route('/assign-clients', methods=['GET', 'POST'])
+def assign_clients():
+
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+
+        user_id = int(request.form['user_id'])
+
+        limit = int(request.form['limit'])
+
+        cursor.execute("""
+        SELECT TOP (?) id
+
+        FROM evc_clients
+
+        WHERE
+
+        status='Pending'
+
+        AND assigned_to IS NULL
+
+        ORDER BY id
+        """, (limit,))
+
+        clients = cursor.fetchall()
+
+        for client in clients:
+
+            cursor.execute("""
+
+            UPDATE evc_clients
+
+            SET
+
+            assigned_to=?,
+
+            assigned_date=GETDATE()
+
+            WHERE id=?
+
+            """,
+
+            (
+
+            user_id,
+
+            client.id
+
+            ))
+
+        flash("Clients Assigned Successfully","success")
+
+        return redirect('/assign-clients')
+
+    cursor.execute("""
+
+    SELECT
+
+    id,
+
+    fullname
+
+    FROM users
+
+    WHERE status='Active'
+
+    ORDER BY fullname
+
+    """)
+
+    users = cursor.fetchall()
+
+    return render_template(
+
+    "admin/assign_clients.html",
+
+    users=users
+
+    )
 
 @app.route('/search-pan', methods=['POST'])
 def search_pan():
@@ -343,20 +521,11 @@ def view_pdf(client_id):
 
     filename = row.evc_pdf
 
-    pdf_path = os.path.join(
-        app.config['UPLOAD_FOLDER'],
-        filename
-    )
+    if not filename:
+        return "PDF not uploaded"
 
-
-    if not os.path.exists(pdf_path):
-        return f"PDF NOT FOUND: {pdf_path}"
-
-    return send_from_directory(
-        app.config['UPLOAD_FOLDER'],
-        filename,
-        as_attachment=False,
-        mimetype='application/pdf'
+    return redirect(
+        f"https://advthakre.com/evc-pdf/{filename}"
     )
 
 if __name__ == '__main__':

@@ -144,13 +144,16 @@
 
                 <div class="col-lg-6 mb-3">
 
-                    <label>E-Filing Password</label>
+                    <label class="form-label fw-semibold">
+                        E-Filing Password
+                    </label>
 
                     <input
                         type="text"
                         id="efiling_password"
                         name="efiling_password"
                         class="form-control">
+
                 </div>
 
                 <div class="col-lg-6 mb-3">
@@ -168,7 +171,165 @@
                 </div>
 
             </div>
+            <div class="row">
 
+    <div class="col-lg-12 mb-4">
+
+        <label class="form-label fw-semibold">
+            Auto Assignment Queue
+        </label>
+
+        {% if users %}
+
+        <div class="card border border-success">
+
+            <div class="card-header bg-success text-white">
+
+                <i class="bi bi-people-fill me-2"></i>
+
+                Verification Executive Queue
+
+            </div>
+
+            <div class="card-body p-0">
+
+                <table class="table table-bordered table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th width="8%">
+                                #
+                            </th>
+
+                            <th>
+                                Verification Executive
+                            </th>
+
+                            <th width="20%">
+                                Pending Clients
+                            </th>
+
+                            <th width="25%">
+                                Assignment Status
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for user in users %}
+
+                        <tr
+                        {% if loop.first %}
+                        class="table-success"
+                        {% endif %}>
+
+                            <td>
+
+                                {{ loop.index }}
+
+                            </td>
+
+                            <td>
+
+                                <strong>
+
+                                    {{ user.fullname }}
+
+                                </strong>
+
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-warning text-dark fs-6">
+
+                                    {{ user.pending_count }}/20
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                {% if loop.first %}
+
+                                <span class="badge bg-success fs-6">
+
+                                    <i class="bi bi-arrow-right-circle-fill me-1"></i>
+
+                                    Next Assignment
+
+                                </span>
+
+                                {% elif user.pending_count >=20 %}
+
+                                <span class="badge bg-danger">
+
+                                    Queue Full
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-secondary">
+
+                                    Waiting
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <div class="alert alert-info mt-3 mb-0">
+
+            <i class="bi bi-info-circle-fill me-2"></i>
+
+            <strong>Automatic Assignment Rule</strong>
+
+            <hr>
+
+            Every Verification Executive can receive a maximum of
+            <strong>20 Pending Clients</strong>.
+
+            Once the first executive reaches
+            <strong>20/20</strong>,
+            the next client will automatically be assigned to the next executive in the queue.
+
+        </div>
+
+        {% else %}
+
+        <div class="alert alert-danger">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            No Active User Available.
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
             <div class="mb-3">
 
                 <label class="form-label fw-semibold">
@@ -179,7 +340,7 @@
                     name="remarks"
                     rows="3"
                     class="form-control"
-                    placeholder="Optional Remarks"></textarea>
+                    placeholder="Enter Remarks (Optional)"></textarea>
 
             </div>
 
@@ -210,6 +371,7 @@
     </div>
 
 </div>
+
 <script>
 
 document.addEventListener("DOMContentLoaded", function(){
@@ -261,9 +423,9 @@ document.addEventListener("DOMContentLoaded", function(){
         .catch(error => {
             console.log(error);
         });
+
     }
 
-    // Manual Typing
     panInput.addEventListener("input", function(){
 
         let pan = this.value.trim().toUpperCase();
@@ -278,16 +440,15 @@ document.addEventListener("DOMContentLoaded", function(){
 
     });
 
-    // Scanner Support (scanner usually sends Enter)
     panInput.addEventListener("keypress", function(e){
 
-        if(e.key === "Enter"){
+        if(e.key==="Enter"){
 
             e.preventDefault();
 
-            let pan = this.value.trim().toUpperCase();
+            let pan=this.value.trim().toUpperCase();
 
-            const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+            const panRegex=/^[A-Z]{5}[0-9]{4}[A-Z]$/;
 
             if(panRegex.test(pan)){
                 fetchClientData(pan);
@@ -298,5 +459,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
 
 });
+
 </script>
+
 {% endblock %}
